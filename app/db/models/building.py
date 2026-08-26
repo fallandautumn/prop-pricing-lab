@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, UniqueConstraint, func
+from sqlalchemy import String, Integer, Float, Text, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -26,6 +26,23 @@ class Building(Base):
     building_structure: Mapped[str | None] = mapped_column(
         String(32), comment="RC・SRC・木造・鉄骨など。詳細ページから取得。NULL許容"
     )
+    total_units: Mapped[int | None] = mapped_column(Integer, comment="総戸数")
+    # Phase2: LLM（gpt-4o-mini）による物件名・住所からのスコアリング
+    # brand/locationは部屋番号に依存しない建物単位の属性のため buildings に持たせる
+    # （rooms.brand_score は初期スタブとして残っているが未使用・非推奨）
+    brand_score: Mapped[float | None] = mapped_column(
+        Float, comment="LLMブランドスコア(0-100)。デベロッパーブランド・シリーズの評価"
+    )
+    location_score: Mapped[float | None] = mapped_column(
+        Float, comment="LLM立地スコア(0-100)。駅距離を除いたエリアの格・利便性の評価"
+    )
+    llm_reasoning: Mapped[str | None] = mapped_column(
+        Text, comment="LLMスコアの根拠（デバッグ・説明可能性のため保存）"
+    )
+    llm_scored_at: Mapped[datetime | None] = mapped_column(
+        DateTime, comment="LLMスコアリングを実行した日時。再実行時のスキップ判定に使う"
+    )
+
     scraped_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     rooms: Mapped[list["Room"]] = relationship("Room", back_populates="building", cascade="all, delete-orphan")

@@ -13,3 +13,4 @@ build/
 *.log
 Thumbs.db
 .vscode/
+docs/pitch.md

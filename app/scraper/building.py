@@ -28,6 +28,7 @@ class BuildingData:
     station_distance: int | None = None
     building_type: str | None = None
     building_structure: str | None = None
+    total_units: int | None = None
 
 
 def extract_building_fields(soup) -> dict:
@@ -75,6 +76,10 @@ def extract_building_fields(soup) -> dict:
             v = _normalize_structure(val)
             if v:
                 fields["building_structure"] = v
+        elif "総戸数" in key:
+            m = re.search(r"(\d+)", val)
+            if m:
+                fields["total_units"] = int(m.group(1))
 
     return fields
 
@@ -143,11 +148,62 @@ def _normalize_title(title: str) -> str:
     2. 号室サフィックスを除去
        e.g. "Urban Breeze Ebisu 403号室" -> "Urban Breeze Ebisu"
     3. 連続スペースを単一スペースに圧縮
+    4. 末尾のローマ数字を算用数字に正規化
+       e.g. "レジディア代々木II" -> "レジディア代々木2"
+       （"レジディア代々木2" と表記ゆれで同一視できるようにするため。
+       listingによってどちらの表記が使われるか揺れることが分かっている。）
     """
-    title = _normalize_text(title)                         # NFKC + スペース圧縮
-    title = re.sub(r'\s*\d+号室?\s*$', '', title)          # 末尾の号室を除去
-    title = re.sub(r'\s+[A-Z]?\d{3,4}\s*$', '', title)    # 末尾の英数字部屋番号を除去
+    title = _normalize_text(title)                          # NFKC + スペース圧縮
+    title = re.sub(r'\s*\d+[A-Za-z]*号室?\s*$', '', title)  # 末尾の号室を除去（"3F号室"等の表記ゆれ含む）
+    title = re.sub(r'\s+[A-Z]?\d{3,4}\s*$', '', title)     # 末尾の英数字部屋番号を除去
+    title = normalize_roman_suffix(title.strip())
     return title.strip()
+
+
+GENERIC_TITLE_PATTERN = re.compile(r"駅.*階建.*築|築.*駅.*階建")
+
+
+def is_generic_title(title: str | None) -> bool:
+    """
+    Suumoの一部ページ（主に新築・正式名称が未確定の物件）は、h1が実際の
+    建物名ではなく「路線 駅名 階建 築年数」という自動生成の要約文になる。
+    この要約文は表示される最寄り駅がlistingごとに揺れるため
+    （例: 同じ建物なのに「初台駅」表記と「幡ヶ谷駅」表記が混在する）、
+    (title, address) の名寄せキーとして信頼できない。
+    """
+    if not title:
+        return False
+    return bool(GENERIC_TITLE_PATTERN.search(title))
+
+
+_ROMAN_SUFFIX_MAP = [
+    ("VIII", "8"),
+    ("VII", "7"),
+    ("III", "3"),
+    ("IV", "4"),
+    ("IX", "9"),
+    ("VI", "6"),
+    ("II", "2"),
+    ("V", "5"),
+    ("I", "1"),
+]
+
+
+def normalize_roman_suffix(title: str) -> str:
+    """
+    建物名の末尾が半角ローマ数字（NFKC正規化により全角ローマ数字は
+    事前にASCIIへ分解済み）の場合、算用数字に変換する。
+    e.g. "レジディア代々木II" / "レジディア代々木Ⅱ"(NFKC後II) -> "レジディア代々木2"
+
+    既知のリスク: 建物名が偶然 "...I" "...V" 等で終わる場合に誤変換する
+    可能性はあるが、日本の賃貸物件名では意図的なローマ数字の棟番号
+    （フォレストI、テラスII等）である場合が大半のため許容している。
+    """
+    for roman, arabic in _ROMAN_SUFFIX_MAP:
+        if title.endswith(roman):
+            base = title[: -len(roman)].rstrip()
+            return base + arabic
+    return title
 
 
 def _normalize_text(text: str) -> str:

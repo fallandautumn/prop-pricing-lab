@@ -23,6 +23,9 @@ class Room(Base):
     liv_area: Mapped[float | None] = mapped_column(Float, comment="専有面積（㎡）")
     floor: Mapped[int | None] = mapped_column(Integer, comment="部屋の階数")
     floor_plan: Mapped[str | None] = mapped_column(String(16), comment="間取り（例: 1LDK）")
+    orientation: Mapped[str | None] = mapped_column(String(8), comment="向き（例: 南、西）")
+    move_in_date: Mapped[str | None] = mapped_column(String(32), comment="入居可能時期（生テキスト。例: '26年10月下旬）")
+    url: Mapped[str | None] = mapped_column(String(255), comment="Suumo物件詳細URL（デバッグ用）")
 
     # モデル出力（Phase1以降に更新）
     estimated_price: Mapped[int | None] = mapped_column(Integer, comment="適正価格（円）。モデル実行後に保存")

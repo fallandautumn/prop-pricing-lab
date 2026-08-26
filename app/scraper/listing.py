@@ -6,7 +6,7 @@ Suumo URL structure (verified):
 - One card (.cassetteitem) contains multiple jnc_ links with different bc_ids
 - Group by bc_id to get per-building room lists
 
-Target area: Shibuya ward, Tokyo
+Target area: Shibuya / Shinjuku wards, Tokyo（プロジェクト方針により当面この2区に限定）
 """
 import logging
 import re
@@ -18,16 +18,23 @@ from app.scraper.http import get_soup
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://suumo.jp"
-LISTING_URL = "https://suumo.jp/chintai/tokyo/sc_shibuya/"
+
+# 対象エリア（プロジェクト方針: 渋谷区・新宿区に限定。地域拡張はestie応募後）。
+# Suumoの区コードは "sc_" + 区名ローマ字。
+WARD_CODES = {
+    "shibuya": "sc_shibuya",
+    "shinjuku": "sc_shinjuku",
+}
 
 
 def fetch_building_urls(
     max_pages: int | None = None,
     max_urls: int | None = None,
     start_page: int = 1,
+    ward: str = "shibuya",
 ) -> dict[str, list[str]]:
     """
-    Scan Shibuya ward listing pages and return {bc_id: [jnc_url, ...]} dict.
+    Scan a ward's listing pages and return {bc_id: [jnc_url, ...]} dict.
 
     Args:
         max_pages:  最後に見るページ番号（start_pageからの相対回数ではなく絶対ページ番号）。
@@ -35,16 +42,21 @@ def fetch_building_urls(
         max_urls:   Max unique buildings (bc_ids) to collect. Stops immediately on reaching limit.
         start_page: 開始ページ番号（1始まり）。既に取得済みのページを再取得せず
                     続きから取りたい場合に使う。
+        ward:       対象区。WARD_CODES のキー（"shibuya" / "shinjuku"）。
 
     Returns:
         {bc_id: [jnc_url, ...]} dict
     """
+    if ward not in WARD_CODES:
+        raise ValueError(f"unknown ward: {ward!r}. choices: {list(WARD_CODES)}")
+    listing_url = f"{BASE_URL}/chintai/tokyo/{WARD_CODES[ward]}/"
+
     session = requests.Session()
     result: dict[str, list[str]] = {}
     page = start_page
 
     while True:
-        url = f"{LISTING_URL}?page={page}"
+        url = f"{listing_url}?page={page}"
         logger.info("listing page: %s", url)
 
         try:

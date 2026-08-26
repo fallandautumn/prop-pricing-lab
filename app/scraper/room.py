@@ -41,6 +41,9 @@ class RoomData:
     liv_area: float | None = None
     floor: int | None = None
     floor_plan: str | None = None
+    orientation: str | None = None
+    move_in_date: str | None = None
+    url: str | None = None
 
 
 def extract_room_fields(soup, room_id: str) -> RoomData:
@@ -81,6 +84,13 @@ def extract_room_fields(soup, room_id: str) -> RoomData:
         elif "間取り" in key and "詳細" not in key:
             # madori (but not madori-shosai)
             data.floor_plan = val[:16]
+        elif key == "向き":
+            # 完全一致に限定（"バルコニー向き"等の別フィールドとの誤取得防止）
+            data.orientation = val[:8] if val and val != "-" else None
+        elif "入居" in key:
+            # 表記ゆれ（"入居"/"入居時期"/"入居可能"等）に対応するため部分一致。
+            # 生テキストのまま保存（例: "'26年10月下旬"、"即時"等、書式が統一されていないため）
+            data.move_in_date = val[:32] if val and val != "-" else None
 
     if data.price is not None:
         data.monthly_fee = data.price + (data.admin_fee or 0)
@@ -106,7 +116,9 @@ def scrape_room(url: str, session: requests.Session | None = None) -> RoomData |
         logger.error("room page fetch failed %s: %s", url, e)
         return None
 
-    return extract_room_fields(soup, room_id)
+    data = extract_room_fields(soup, room_id)
+    data.url = url
+    return data
 
 
 # ---------- helpers ----------
