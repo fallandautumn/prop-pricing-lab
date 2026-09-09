@@ -1,4 +1,4 @@
-# prop-arbitrage-v2
+# prop-pricing-lab
 
 渋谷区の賃貸物件データ（Suumo）を対象に、目的の異なる2つのモジュールを分離して持つ不動産データ分析基盤。
 
