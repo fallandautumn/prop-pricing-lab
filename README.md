@@ -88,10 +88,18 @@ app/
   llm/         # ブランドtierルールベース分類・LLM立地スコアリング（Structured Outputs）
   analysis/    # DAG定義・因果効果推定（matching.py）・CEM（cem.py）・適正価格モデル（scoring.py）
   api/         # FastAPIルーター・スキーマ
-scripts/       # 実行エントリポイント（scraper / analysis / LLM採点 / データ品質診断・修正用）
+scripts/       # 実行エントリポイント・診断/修正スクリプト（内訳は下記）
 alembic/       # DBマイグレーション
 docs/          # Phase毎のまとめ（設計判断・推定結果・見つけたバグの記録）
 ```
+
+`scripts/`の内訳:
+
+| 種類 | ファイル | 役割 |
+|---|---|---|
+| コアパイプライン | `run_scraper.py` / `run_llm_scoring.py` / `run_analysis.py` | 実運用で繰り返し使う3つの実行エントリポイント |
+| データ修正 | `backfill_dedup_buildings.py` / `backfill_dedup_rooms.py` / `recompute_brand_tiers.py` / `reset_db.py` | 見つかったバグに対する正式な修正・DBリセット用ツール（dry-run/apply方式） |
+| 調査・診断 | `debug_*.py` / `check_*.py` | 個別のバグ調査・仮説検証の記録。`docs/phase2_summary.md`本文から名指しで参照されており、再現性のために残置している |
 
 ## 対象エリア・スコープ
 
