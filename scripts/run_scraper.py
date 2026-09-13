@@ -107,13 +107,12 @@ def upsert_building(db, data) -> Building:
         building.suumo_building_id = data.suumo_building_id
 
     building.title = _better_title(building.title, data.title)
-    building.address = data.address
-    building.age = data.age
-    building.total_floors = data.total_floors
-    building.station_distance = data.station_distance
-    building.building_type = data.building_type
-    building.building_structure = data.building_structure
-    building.total_units = data.total_units
+    # パターンA: 三項演算子で「新しい値が None でなければ上書き」(９月修正)
+    building.address = data.address if data.address is not None else building.address
+    building.age = data.age if data.age is not None else building.age
+    building.total_floors = data.total_floors if data.total_floors is not None else building.total_floors
+    building.station_distance = data.station_distance if data.station_distance is not None else building.station_distance
+    building.total_units = data.total_units if data.total_units is not None else building.total_units
     return building
 
 

@@ -60,6 +60,7 @@ def extract_room_fields(soup, room_id: str) -> RoomData:
         if "賃料" in key:
             # '賃料' = chintai. Key is '賃料(管理費)' on Suumo.
             # Value like '15.8万円(12000円)' -> price + admin_fee
+            # 賃料(管理費)はページ下の問い合わせフォームさらに下の取扱店舗のところにある
             _parse_price_and_admin(val, data)
         elif "敷金" in key:   # shikikin
             data.deposit = _parse_yen_or_months(val, data.price)
