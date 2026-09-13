@@ -6,7 +6,7 @@
 - **Module 2: 属性プレミアム分析**（`app/analysis/matching.py` / `cem.py`）— 建物固定効果・CEMを用いて「1階上がると家賃が何%上がるか」等、特定属性の純粋な限界効果（ヘドニック潜在価格）を推定する。評価軸は推定量の不偏性（内的妥当性）。
 
 ```
-Suumo Scraper（listing→building→room 3段階）
+Suumo Scraper（listing一覧ページ→room詳細ページの2段階フェッチ。building情報はroom詳細ページから抽出）
       ↓
 PostgreSQL（buildings / rooms）
       ↓
@@ -103,7 +103,7 @@ docker compose up api
 
 ```
 app/
-  scraper/     # Suumoスクレイパー（listing → building → room の3段階）
+  scraper/     # Suumoスクレイパー（listing一覧→room詳細の2段階フェッチ。building情報はroom詳細ページから抽出しbc_id単位でマージ）
   db/          # SQLAlchemyモデル・セッション
   llm/         # ブランドtierルールベース分類・LLM立地スコアリング（Structured Outputs）
   analysis/    # DAG定義・因果効果推定（matching.py）・CEM（cem.py）・適正価格モデル（scoring.py）
