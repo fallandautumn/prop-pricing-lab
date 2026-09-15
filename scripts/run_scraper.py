@@ -121,17 +121,24 @@ def upsert_room(db, building: Building, data) -> Room:
     if room is None:
         room = Room(suumo_room_id=data.suumo_room_id, building=building)
         db.add(room)
-    room.price = data.price
-    room.admin_fee = data.admin_fee
-    room.monthly_fee = data.monthly_fee
+
+    # 1. 物理スペック・固定情報: None による既存データ破壊を防止 (Coalesce)
+    room.liv_area = data.liv_area if data.liv_area is not None else room.liv_area
+    room.floor = data.floor if data.floor is not None else room.floor
+    room.floor_plan = data.floor_plan if data.floor_plan is not None else room.floor_plan
+    room.orientation = data.orientation if data.orientation is not None else room.orientation
+
+    # 2. 金銭・募集条件・メタ情報: 最新の募集状況を反映（有効値がある前提で更新）
+    if data.price is not None:
+        room.price = data.price
+        room.admin_fee = data.admin_fee
+        room.monthly_fee = data.monthly_fee
+
     room.deposit = data.deposit
     room.key_money = data.key_money
-    room.liv_area = data.liv_area
-    room.floor = data.floor
-    room.floor_plan = data.floor_plan
-    room.orientation = data.orientation
     room.move_in_date = data.move_in_date
     room.url = data.url
+
     return room
 
 
