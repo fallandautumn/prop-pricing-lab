@@ -62,7 +62,7 @@ Phase2完了時点（[`docs/phase2_summary.md`](docs/phase2_summary.md) 2節と�
 - **LLM特徴量を検証してから採用/棄却**: 建物ブランドをLLM推論からルールベース分類に変更（決定論的・APIコストゼロ）。もう一つのLLM特徴量（立地スコア）はarea_groupとの多重共線性をVIF・クラスターロバストSE・モデル比較（AIC/BIC/out-of-sample性能）の3方向から検証し、実質的な寄与がないと判明したため最終的にモデルから除外。
 - **データ品質のバグを実データから発見・修正**: スクレイパーの建物名抽出バグ（3パターン）、同一物理部屋の重複掲載（複数不動産会社経由）を、割安トップ10の異常値から逆算して発見し、名寄せロジックを設計・修正。
 
-詳細な設計判断・失敗と修正の記録は [`docs/phase1_summary.md`](docs/phase1_summary.md)（因果推論の基礎部分）と [`docs/phase2_summary.md`](docs/phase2_summary.md)（LLM特徴量・検証フレームワーク・データ品質バグ修正、目次あり）を参照。
+詳細な設計判断・失敗と修正の記録は [`docs/phase1_summary.md`](docs/phase1_summary.md)（因果推論の基礎部分）、[`docs/phase2_summary.md`](docs/phase2_summary.md)（LLM特徴量・検証フレームワーク・データ品質バグ修正、目次あり）、[`docs/phase3_summary.md`](docs/phase3_summary.md)（EDAによる駅徒歩効果の解明）を参照。
 
 ## 技術スタック
 
